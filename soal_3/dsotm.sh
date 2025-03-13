@@ -74,7 +74,7 @@ money(){
             tput sgr0
         done
         sleep 0.00000001
-done
+    done
 }
 
 brain_damage(){
