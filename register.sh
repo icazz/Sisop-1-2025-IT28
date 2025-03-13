@@ -1,0 +1,79 @@
+#!/bin/bash
+clear
+DB_FILE="player.csv"
+
+cat << "EOF"
+               ,▄▀▀▀▀▄, ██▀▀▀▀▄  ▄▀▀▀▀▀▀ ▄▐▀▀▀▀▄  █▀▀▀▀▀▀ ,▄▀▀▀▀▄
+               ▐█    █▌ █▌    █-▐█       █▌    █⌐ █████L  ██    █▌
+               ▐█▀▀▀▀█▌ ██▀▀▀▀▄ └▀▄▄▄▄▄▄ ██▀▀▀▀█⌐ █▄▄▄▄▄▄ ██▀▀▀▀█▌
+    ,,,,,       ¬    -` ¬     ¬   ¬¬¬¬¬- -     ¬  ¬¬¬¬¬¬¬ `-    ¬      ,,,,,
+    ▀▀▀▀▀"                                                             ▀▀▀▀▀^
+                 ▄╚▀▀▀▀▀ ▐▀██▀ ╓▐▀▀▀▀▀─ █▄,  ▐█     ▐█    ██ ██▀▀▀▀▄
+                 ▀████▌    █U  █▌ ████⌐ █▀▐█ ▐█     ▐█    ██ █▌    █⌐
+                 ▄▄▄▄▄▄▀ ,▄█▄▄ ▀▌▄▄▄▄█U █   ▀██     ╘▀▄▄▄▄▀▀ ██▀▀▀▀
+                 ¬¬¬¬¬-   ¬¬¬`   ¬¬¬¬¬  ¬     ¬       ¬¬¬¬   -`
+_____________________________________________________________________
+EOF
+
+if [ ! -f "$DB_FILE" ]; then
+    echo "email,username,hpassword,password" > "$DB_FILE"
+fi
+
+validate_input() {
+    local valid=0
+    while [ $valid -eq 0 ]; do
+
+        read -p "Input Username: " username
+        read -p "Input Email: " email
+        read -p "Input Password: " password
+        echo ""
+        echo "_____________________________________________________________________"
+
+        valid=1  # Anggap valid, cek error nanti
+
+        # Validasi Email: harus mengandung '@' dan '.'
+        if [[ "$email" != *"@"* || "$email" != *"."* ]]; then
+            echo "Error: Email must contain '@' and '.'"
+            valid=0
+        fi
+
+        # Validasi Password
+        if [ ${#password} -lt 8 ]; then
+            echo "Error: Password must be at least 8 characters long."
+            valid=0
+        fi
+        if ! [[ "$password" =~ [A-Z] ]]; then
+            echo "Error: Password must include at least one uppercase letter."
+            valid=0
+        fi
+        if ! [[ "$password" =~ [a-z] ]]; then
+            echo "Error: Password must include at least one lowercase letter."
+            valid=0
+        fi
+        if ! [[ "$password" =~ [0-9] ]]; then
+            echo "Error: Password must include at least one number."
+            valid=0
+        fi
+
+        # Cek apakah email sudah digunakan
+        if awk -F',' -v Email="$email" 'NR>1 { if ($2 == Email) { exit 1 } }' "$DB_FILE"; then
+            :  # Email belum didaftarkan, lanjutkan
+        else
+            echo "Error: Email already taken!"
+            valid=0
+        fi
+
+        # Jika ada error, ulangi input
+        if [ $valid -eq 0 ]; then
+            echo "Silakan coba lagi."
+            echo "_____________________________________________________________________"
+        fi
+    done
+}
+
+validate_input
+
+hashed_password=$(echo -n "${password}STATIC_SALT" | sha256sum | awk '{print $1}')
+
+echo "$email,$username,$hashed_password,$password" >> "$DB_FILE"
+echo "Registration successful!"
