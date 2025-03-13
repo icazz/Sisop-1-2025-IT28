@@ -1,7 +1,7 @@
 #!/bin/bash
 clear
 
-DB_FILE="player.csv"
+DB_FILE="./data/player.csv"
 cat<<"EOF"
              ╒▄▀▀▀▀y▄ ██▀▀▀▀▄▄ ▄/▀▀▀▀▀- ▄▀▀▀▀▀▄ ▐█▀▀▀▀▀▀ ▄▄▀▀▀▀▄▄
              ▐█    ▐█ ██    █▌ █▌       █⌐   ▐█ ▐█████L  ██    █▌
@@ -39,6 +39,5 @@ else
     exit 1
 fi
 
-echo "berhasil"
 sleep 2
 bash "./scripts/manager.sh"

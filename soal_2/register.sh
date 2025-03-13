@@ -1,6 +1,9 @@
 #!/bin/bash
 clear
-DB_FILE="player.csv"
+
+DB_FILE="./data/player.csv"
+mkdir -p ./data
+touch "$DB_FILE"
 
 cat << "EOF"
                ,▄▀▀▀▀▄, ██▀▀▀▀▄  ▄▀▀▀▀▀▀ ▄▐▀▀▀▀▄  █▀▀▀▀▀▀ ,▄▀▀▀▀▄
