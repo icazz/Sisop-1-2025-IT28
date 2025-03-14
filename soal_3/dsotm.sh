@@ -13,6 +13,7 @@ WHITE='\033[1;37m'
 COLORS=("$PINK" "$BLUE" "$GREEN" "$YELLOW" "$PURPLE")
 
 speak_to_me(){
+    clear
     tput civis
     
     cat << "EOF"
