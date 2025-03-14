@@ -1,86 +1,77 @@
 #!/bin/bash
-# manager.sh
-# Menu interaktif untuk menambahkan/menghapus job crontab
-# terkait pemantauan CPU (Core) dan RAM (Fragments).
+# manager.sh - Crontab Manager for CPU & RAM Monitoring
 
-# Lokasi skrip pemantauan (sesuaikan dengan path sebenarnya)
-CORE_MONITOR="/full/path/to/core_monitor.sh"
-FRAG_MONITOR="/full/path/to/frag_monitor.sh"
+CORE_SCRIPT="$(realpath "$(dirname "$0")/core_monitor.sh")"
+FRAG_SCRIPT="$(realpath "$(dirname "$0")/frag_monitor.sh")"
 
-# File log (bisa disesuaikan)
-CORE_LOG="/var/log/core_monitor.log"
-FRAG_LOG="/var/log/frag_monitor.log"
+function remove_task() {
+    local script=$1
+    local task_name=$2
+
+    # Remove from crontab if exists
+    if crontab -l 2>/dev/null | grep -q "$script"; then
+        crontab -l 2>/dev/null | grep -v "bin/bash .*$(realpath "$script")" | crontab -
+        echo "🗑️ $task_name successfully removed from crontab!"
+    else
+        echo "❌ $task_name not found in crontab!"
+    fi
+
+    # Stop running process
+    local pids=$(pgrep -f "$script")
+    if [[ -n "$pids" ]]; then
+        echo "🛑 Stopping $task_name..."
+        kill -9 $pids
+        echo "✅ $task_name successfully stopped!"
+    fi
+}
+
+function add_cron() {
+    local script=$1
+    local task_name=$2
+
+    if crontab -l 2>/dev/null | grep -q "$script"; then
+        echo "❌ $task_name is already in crontab!"
+        return
+    fi
+
+    (crontab -l 2>/dev/null | grep -v "bin/bash .*$(realpath "$script")"; echo "* * * * * /bin/bash $(realpath "$script")") | crontab -
+    echo "✅ $task_name successfully added to crontab every 1 minute!"
+}
+
+function list_cron() {
+    local cron_jobs=$(crontab -l 2>/dev/null)
+    if [[ -z "$cron_jobs" ]]; then
+        echo "📜 No scheduled tasks in crontab!"
+    else
+        echo "📜 Active crontab tasks:"
+        echo "$cron_jobs"
+    fi
+}
 
 while true; do
     clear
-    cat << "EOF"
-========================================
-          ARCAEA TERMINAL
-========================================
- ID   | OPTION
-----------------------------------------
- 1)   Add CPU - Core Monitor to Crontab
- 2)   Add RAM - Fragment Monitor to Crontab
- 3)   Remove CPU - Core Monitor from Crontab
- 4)   Remove RAM - Fragment Monitor from Crontab
- 5)   View All Scheduled Monitoring Jobs
- 6)   Exit Arcaea Terminal
-----------------------------------------
-EOF
-    read -p "Enter option [1-6]: " opt
+    echo "=================================================="
+    echo "            ARCAEA TERMINAL - MONITORING          "
+    echo "=================================================="
+    echo " ID | OPTION                                      "
+    echo "----|--------------------------------------------"
+    echo " 1  | Add CPU - Core Monitor to Crontab          "
+    echo " 2  | Add RAM - Fragment Monitor to Crontab      "
+    echo " 3  | Remove CPU - Core Monitor                  "
+    echo " 4  | Remove RAM - Fragment Monitor              "
+    echo " 5  | View ALL Scheduled Monitoring Jobs         "
+    echo " 6  | Exit Arcaea Terminal                       "
+    echo "=================================================="
+    read -p "Enter option [1-6]: " choice
 
-    case "$opt" in
-        1)
-            echo "Adding CPU - Core Monitor to Crontab..."
-            # Backup crontab & tambahkan job
-            crontab -l > /tmp/arc_temp_cron 2>/dev/null
-            # Tambahkan baris job (setiap 5 menit)
-            echo "*/5 * * * * $CORE_MONITOR >> $CORE_LOG 2>&1" >> /tmp/arc_temp_cron
-            # Install ulang crontab
-            crontab /tmp/arc_temp_cron
-            rm -f /tmp/arc_temp_cron
-            echo "CPU Monitor job added!"
-            read -n 1 -s -r -p "Press any key to continue..."
-            ;;
-        2)
-            echo "Adding RAM - Fragment Monitor to Crontab..."
-            crontab -l > /tmp/arc_temp_cron 2>/dev/null
-            echo "*/5 * * * * $FRAG_MONITOR >> $FRAG_LOG 2>&1" >> /tmp/arc_temp_cron
-            crontab /tmp/arc_temp_cron
-            rm -f /tmp/arc_temp_cron
-            echo "RAM Monitor job added!"
-            read -n 1 -s -r -p "Press any key to continue..."
-            ;;
-        3)
-            echo "Removing CPU - Core Monitor from Crontab..."
-            crontab -l 2>/dev/null | grep -v "$CORE_MONITOR" > /tmp/arc_temp_cron
-            crontab /tmp/arc_temp_cron
-            rm -f /tmp/arc_temp_cron
-            echo "CPU Monitor job removed!"
-            read -n 1 -s -r -p "Press any key to continue..."
-            ;;
-        4)
-            echo "Removing RAM - Fragment Monitor from Crontab..."
-            crontab -l 2>/dev/null | grep -v "$FRAG_MONITOR" > /tmp/arc_temp_cron
-            crontab /tmp/arc_temp_cron
-            rm -f /tmp/arc_temp_cron
-            echo "RAM Monitor job removed!"
-            read -n 1 -s -r -p "Press any key to continue..."
-            ;;
-        5)
-            echo "Current crontab jobs:"
-            echo "----------------------------------------"
-            crontab -l 2>/dev/null || echo "No crontab for current user."
-            echo "----------------------------------------"
-            read -n 1 -s -r -p "Press any key to continue..."
-            ;;
-        6)
-            echo "Exiting Arcaea Terminal. Goodbye!"
-            exit 0
-            ;;
-        *)
-            echo "Invalid option."
-            read -n 1 -s -r -p "Press any key to continue..."
-            ;;
+    case $choice in
+        1) add_cron "$CORE_SCRIPT" "CPU Monitoring" ;;
+        2) add_cron "$FRAG_SCRIPT" "RAM Monitoring" ;;
+        3) remove_task "$CORE_SCRIPT" "CPU Monitoring" ;;
+        4) remove_task "$FRAG_SCRIPT" "RAM Monitoring" ;;
+        5) list_cron ;;
+        6) echo "🚪 Exiting Arcaea Terminal."; exit 0 ;;
+        *) echo "❌ Invalid option! Please enter a number between 1-6." ;;
     esac
+    read -p "Press Enter to continue..."
 done

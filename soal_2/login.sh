@@ -2,42 +2,43 @@
 clear
 
 DB_FILE="./data/player.csv"
+if [[ ! -f "$DB_FILE" ]]; then
+   echo "Database not found! Redirecting to Registration."
+   sleep 2
+   bash "./register.sh"
+   exit 1
+fi
 cat<<"EOF"
              ╒▄▀▀▀▀y▄ ██▀▀▀▀▄▄ ▄/▀▀▀▀▀- ▄▀▀▀▀▀▄ ▐█▀▀▀▀▀▀ ▄▄▀▀▀▀▄▄
              ▐█    ▐█ ██    █▌ █▌       █⌐   ▐█ ▐█████L  ██    █▌
              ▐█▀▀▀▀██ ██▀▀▀▀▄▄ ▀▌▄▄▄▄▄  █▀▀▀▀▀█ ▐█▄▄▄▄▄▄ ██▀▀▀▀█▌
    ,,,,,,     ¬     -  -    -    ¬¬¬¬¬  ¬     ¬  ¬¬¬¬¬¬-  `    -        ,,,,,
    ▀▀▀▀▀▀                                                               ▀▀▀▀▀▀
-                     ▐█       ,▄▀▀▀▀▄, ,▐▀▀▀▀▀⌐ ▀██▀ j█▄   ▐█
-                     ▐█       ██    █▌ █▌ ▄▄▄▄µ  ██  ▐█▀▐▄ ▐█
-                     ▐▀╓╓╓╓╓╓ ╚█╓╓╓╓█▌ ▀▌╓▄▄▄█▌ ╓██╓ ▐█   ▀██
-                       ▀▀▀▀▀▀   ▀▀▀▀    `▀▀▀▀▀  ▀▀▀▀  ▀    `▀
+                    ▐█       ,▄▀▀▀▀▄, ,▐▀▀▀▀▀⌐ ▀██▀ j█▄   ▐█
+                    ▐█       ██    █▌ █▌ ▄▄▄▄µ  ██  ▐█▀▐▄ ▐█
+                    ▐▀╓╓╓╓╓╓ ╚█╓╓╓╓█▌ ▀▌╓▄▄▄█▌ ╓██╓ ▐█   ▀██
+                      ▀▀▀▀▀▀   ▀▀▀▀    `▀▀▀▀▀  ▀▀▀▀  ▀    `▀
 =============================================================================
 EOF
-read -p "Input Email: " email
-read -p "Input Password: " password
+read -p "Enter Email: " email
+read -p "Enter Password: " password
 echo
 
-if [[ ! -f "$DB_FILE" ]]; then
-   echo "DB belum dibuat! Proses masuk ke Register"
-   sleep 2
-   bash "./register.sh"
-   exit 1
-fi
 if grep -q "^$email," "$DB_FILE"; then
-    echo "✅ Email ditemukan"
+    echo "Email found."
     hashed_password=$(echo -n "${password}STATIC_SALT" | sha256sum | awk '{print $1}')
 
     if awk -F ',' -v e="$email" -v h="$hashed_password" '$1 == e && $3 == h { found=1 } END { exit !found }' "$DB_FILE"; then
-        echo "✅ Login berhasil!"
+        echo "Login successful!"
     else
-        echo "❌ Password salah!"
+        echo "Incorrect password!"
 	exit 1
     fi
 else
-    echo "❌ Email tidak ditemukan!"
+    echo "Email not found!"
     exit 1
 fi
+    echo ""
 
 sleep 2
 bash "./scripts/manager.sh"

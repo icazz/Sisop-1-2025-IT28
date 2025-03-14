@@ -1,94 +1,49 @@
 #!/bin/bash
-# frag_monitor.sh
-# Variabel global untuk menyimpan data CPU sebelumnya
-PREV_TOTAL=0
-PREV_IDLE=0
+# frag_monitor.sh - Monitoring RAM dan menyimpan log
 
-function get_cpu_usage() {
-  read cpu user nice system idle iowait irq softirq steal guest guest_nice < /proc/stat
-  local total=$((user + nice + system + idle + iowait + irq + softirq + steal + guest + guest_nice))
-  
-  # Hitung delta (selisih) sejak pembacaan sebelumnya
-  local total_diff=$((total - PREV_TOTAL))
-  local idle_diff=$((idle - PREV_IDLE))
-  
-  # Hitung persentase usage
-  # usage = (total_diff - idle_diff) / total_diff * 100
-  local usage=0
-  if [ $total_diff -ne 0 ]; then
-    usage=$(( (100 * (total_diff - idle_diff)) / total_diff ))
-  fi
-  
-  # Simpan nilai total dan idle untuk pembacaan berikutnya
-  PREV_TOTAL=$total
-  PREV_IDLE=$idle
-  
-  echo "$usage"
-}
-# Fungsi: Membaca RAM usage via /proc/meminfo
-# Menggunakan MemTotal dan MemAvailable (jika ada) untuk hitung persentase.
+LOG_DIR="$(dirname "$(realpath "$0")")/../logs"
+LOG_FILE="$LOG_DIR/fragment.log"
+
+# Buat folder log jika belum ada
+mkdir -p "$LOG_DIR"
+
+# Fungsi mendapatkan penggunaan RAM
 function get_ram_usage() {
-  local mem_total
-  local mem_avail
-  
-  # Baca MemTotal
-  mem_total=$(grep -m1 "MemTotal" /proc/meminfo | awk '{print $2}')
-  # Baca MemAvailable (jika tidak ada, kita akan gunakan fallback)
-  mem_avail=$(grep -m1 "MemAvailable" /proc/meminfo | awk '{print $2}')
-  
-  # Fallback jika MemAvailable tidak ditemukan (beberapa distro lama)
-  if [ -z "$mem_avail" ]; then
-    local mem_free=$(grep -m1 "MemFree" /proc/meminfo | awk '{print $2}')
-    local buffers=$(grep -m1 "Buffers" /proc/meminfo | awk '{print $2}')
-    local cached=$(grep -m1 "^Cached" /proc/meminfo | awk '{print $2}')
-    mem_avail=$((mem_free + buffers + cached))
-  fi
-  
-  # Hitung usage
-  local used=$((mem_total - mem_avail))
-  # Persentase
-  local usage_percent
-  usage_percent=$(awk -v used="$used" -v total="$mem_total" 'BEGIN {printf "%.2f", (used / total * 100)}')
-  # Konversi ke MB
-  local used_mb=$((used / 1024))
-  
-  # Kembalikan string "xx.xx% (yyy MB)"
-  echo "${usage_percent}% (${used_mb} MB)"
+    local mem_total mem_avail mem_used
+
+    # Baca data RAM dari /proc/meminfo
+    mem_total=$(grep -m1 "MemTotal" /proc/meminfo | awk '{print $2}')
+    mem_avail=$(grep -m1 "MemAvailable" /proc/meminfo | awk '{print $2}')
+
+    # Jika MemAvailable tidak ditemukan (fallback sistem lama)
+    if [ -z "$mem_avail" ]; then
+        local mem_free buffers cached
+        mem_free=$(grep -m1 "MemFree" /proc/meminfo | awk '{print $2}')
+        buffers=$(grep -m1 "Buffers" /proc/meminfo | awk '{print $2}')
+        cached=$(grep -m1 "^Cached" /proc/meminfo | awk '{print $2}')
+        mem_avail=$((mem_free + buffers + cached))
+    fi
+
+    # Hitung RAM yang terpakai
+    mem_used=$((mem_total - mem_avail))
+
+    # Konversi ke MB
+    local total_mb=$((mem_total / 1024))
+    local avail_mb=$((mem_avail / 1024))
+    local used_mb=$((mem_used / 1024))
+
+    # Hitung persentase penggunaan RAM
+    local usage_percent
+    usage_percent=$(awk -v used="$mem_used" -v total="$mem_total" 'BEGIN {printf "%.2f", (used / total * 100)}')
+
+    echo "$usage_percent $used_mb $total_mb $avail_mb"
 }
 
-# Inisialisasi awal CPU (agar PREV_* terisi)
-# Kita baca sekali data CPU, lalu sleep sejenak agar next read bisa dihitung selisihnya
-get_cpu_usage >/dev/null
-sleep 1
+# Ambil timestamp
+timestamp=$(date "+%Y-%m-%d %H:%M:%S")
 
-# Loop utama: streaming CPU & RAM usage
-while true; do
-  # Dapatkan CPU usage
-  cpu_usage=$(get_cpu_usage)
-  # Dapatkan RAM usage
-  ram_usage=$(get_ram_usage)
-  
-  # Bersihkan layar
-  clear
-  cat << "EOF"
-=============================================================================
-                 ,,,,   ,,,,,     ,,,,,    ,,,,   ,,,,,,,   ,,,,
-               ▄▌▀▀▀▀▄ ¬█▀▀▀▀}▄ ╔▄▀▀▀▀▀▀ ▄Γ▀▀▀▀▄ ▐█▀▀▀▀▀▀ ╔▄▀▀▀▀▄▄
-               █▌,,,,█⌐¬█▄,,,▐█ ╟█       █▌,,,¿█`▐█████F  ██,,,,█▌
-               █▌▀▀▀▀█⌐¬█▀▀▀▀▐▄ "▀▄▄▄▄▄▄ █▌▀▀▀▀█`▐█▄▄▄▄▄▄ ██▀▀▀▀█▌
-   ╓▄▄▄▄▄                                                              ▄▄▄▄▄▄
-   `-----                                                              -----`
-                          █▀▀▀▀▀▀ ▐█▀▀▀▀▄▄ ▄▄▀▀▀▀▄  ▄▀▀▀▀▀▀
-                          █████▌  ▐█    ██ █▌    █▌ █- ████
-                          █▌      ▐█▀▀▀▀╦▄ ██▀▀▀▀█▌ ▀▄▄▄▄▄█
-                          `        `             `    `````
-=============================================================================
-EOF
+# Dapatkan RAM usage
+read ram_percent ram_used ram_total ram_avail <<< "$(get_ram_usage)"
 
-  echo "CPU Usage  : ${cpu_usage}%"
-  echo "RAM Usage  : ${ram_usage}"
-  echo "--------------------------------"
-  echo "Press [CTRL+C] to exit."
-  
-  sleep 1
-done
+# Cetak ke log file dengan format yang benar
+echo "[$timestamp] - Fragment Usage [$ram_percent%] - Fragment Count [$ram_used MB] - Details [Total: $ram_total MB, Available: $ram_avail MB]" >> "$LOG_FILE"

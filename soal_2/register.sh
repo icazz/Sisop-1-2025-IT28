@@ -2,8 +2,7 @@
 clear
 
 DB_FILE="./data/player.csv"
-mkdir -p ./data
-touch "$DB_FILE"
+
 
 cat << "EOF"
                ,▄▀▀▀▀▄, ██▀▀▀▀▄  ▄▀▀▀▀▀▀ ▄▐▀▀▀▀▄  █▀▀▀▀▀▀ ,▄▀▀▀▀▄
@@ -19,6 +18,7 @@ _____________________________________________________________________
 EOF
 
 if [ ! -f "$DB_FILE" ]; then
+    mkdir -p ./data
     echo "email,username,hpassword,password" > "$DB_FILE"
 fi
 
@@ -26,9 +26,9 @@ validate_input() {
     local valid=0
     while [ $valid -eq 0 ]; do
 
-        read -p "Input Username: " username
-        read -p "Input Email: " email
-        read -p "Input Password: " password
+        read -p "Enter Username: " username
+        read -p "Enter Email: " email
+        read -p "Enter Password: " password
         echo ""
         echo "_____________________________________________________________________"
 
@@ -68,7 +68,7 @@ validate_input() {
 
         # Jika ada error, ulangi input
         if [ $valid -eq 0 ]; then
-            echo "Silakan coba lagi."
+            echo "Please try again."
             echo "_____________________________________________________________________"
         fi
     done

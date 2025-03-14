@@ -25,12 +25,13 @@ EOF
 
     echo "1) Register"
     echo "2) Login"
-    echo "3) Crontab Manager"
-    echo "4) Exit"
+    echo "3) Exit"
     echo "
 ============================================================================================
 "
     read -p "Enter your choice [1-4]: " choice
+
+    echo ""
 
     case "$choice" in
         1)
@@ -52,15 +53,6 @@ EOF
             read -n 1 -s -r -p "Press any key to continue..."
             ;;
         3)
-            echo "=== Crontab Manager ==="
-            if [ -f "$MANAGER_SCRIPT" ]; then
-                bash "$MANAGER_SCRIPT"
-            else
-                echo "Error: $MANAGER_SCRIPT not found!"
-            fi
-            read -n 1 -s -r -p "Press any key to continue..."
-            ;;
-        4)
             echo "Exiting Arcaea Terminal. Goodbye!"
             exit 0
             ;;
