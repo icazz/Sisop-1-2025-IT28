@@ -240,22 +240,10 @@ TRACK=$1
 TRACK=${TRACK//--play=/}
 
 case "$TRACK" in
-    "Speak to Me")
-    speak_to_me
-    ;;
-    "On the Run")
-    on_the_run
-    ;;
-    "Time")
-    time_function
-    ;;
-    "Money")
-    money
-    ;;
-    "Brain Damage")
-    brain_damage
-    ;;
-    *)
-    echo "Track tidak dikenali! Pilih antara 'Speak to Me', 'On the Run', 'Time', 'Money', 'Brain Damage'."
-    ;;
+    "Speak to Me") speak_to_me ;;
+    "On the Run") on_the_run ;;
+    "Time") time_function ;;
+    "Money") money ;;
+    "Brain Damage") brain_damage ;;
+    *) echo "Unrecognized track! Please choose from 'Speak to Me', 'On the Run', 'Time', 'Money', 'Brain Damage'." ;;
 esac
