@@ -3,11 +3,11 @@
 ## Ica Zika Hamizah - 5027241058
 ## Nafis Faqih Allmuzaky Maolidi - 5027241095
 
-## Soal 1
+## Soal_1
 
-## Soal 2
+## Soal_2
 
-## Soal 3
+## Soal_3
 ### Langkah - Langkah
 
 1. Pertama buat sebuah script "dsotm.sh" yang didalamnya berisi lima fungsi sesuai track yaitu Speak to Me, On the Run, Time, Money, dan Brain Damage.
