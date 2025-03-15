@@ -145,9 +145,9 @@ time_function(){
 }
 
 money(){
-    symbols=('€' '£' '¥' '¢' '₹')
-    colors=(5 6 7)
     clear
+    symbols=('$' '€' '£' '¥' '¢' '₹' '₩' '₿' '₣')
+    colors=(5 6 7)
 
     cols=$(tput cols)
     rows=$(tput lines)
