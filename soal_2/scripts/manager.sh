@@ -1,5 +1,4 @@
 #!/bin/bash
-# manager.sh - Crontab Manager for CPU & RAM Monitoring
 
 CORE_SCRIPT="$(realpath "$(dirname "$0")/core_monitor.sh")"
 FRAG_SCRIPT="$(realpath "$(dirname "$0")/frag_monitor.sh")"
@@ -8,7 +7,6 @@ function remove_task() {
     local script=$1
     local task_name=$2
 
-    # Remove from crontab if exists
     if crontab -l 2>/dev/null | grep -q "$script"; then
         crontab -l 2>/dev/null | grep -v "bin/bash .*$(realpath "$script")" | crontab -
         echo "🗑️ $task_name successfully removed from crontab!"
@@ -16,7 +14,6 @@ function remove_task() {
         echo "❌ $task_name not found in crontab!"
     fi
 
-    # Stop running process
     local pids=$(pgrep -f "$script")
     if [[ -n "$pids" ]]; then
         echo "🛑 Stopping $task_name..."

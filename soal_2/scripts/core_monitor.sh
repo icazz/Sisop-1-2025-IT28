@@ -1,10 +1,8 @@
 #!/bin/bash
-# core_monitor.sh - Monitoring CPU dan menyimpan log
 
 LOG_DIR="$(dirname "$(realpath "$0")")/../logs"
 LOG_FILE="$LOG_DIR/core.log"
 
-# Buat folder log jika belum ada
 mkdir -p "$LOG_DIR"
 
 # Fungsi mendapatkan penggunaan CPU dan model CPU
@@ -28,11 +26,8 @@ function get_cpu_usage() {
     echo "$cpu_usage $cpu_model"
 }
 
-# Ambil timestamp
 timestamp=$(date "+%Y-%m-%d %H:%M:%S")
 
-# Dapatkan penggunaan CPU
 read cpu_percent cpu_model <<< "$(get_cpu_usage)"
 
-# Cetak ke log file
 echo "[$timestamp] - Core Usage [$cpu_percent%] - Terminal Model [$cpu_model]" >> "$LOG_FILE"

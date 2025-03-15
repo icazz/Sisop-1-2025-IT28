@@ -1,10 +1,8 @@
 #!/bin/bash
-# frag_monitor.sh - Monitoring RAM dan menyimpan log
 
 LOG_DIR="$(dirname "$(realpath "$0")")/../logs"
 LOG_FILE="$LOG_DIR/fragment.log"
 
-# Buat folder log jika belum ada
 mkdir -p "$LOG_DIR"
 
 # Fungsi mendapatkan penggunaan RAM
@@ -39,11 +37,8 @@ function get_ram_usage() {
     echo "$usage_percent $used_mb $total_mb $avail_mb"
 }
 
-# Ambil timestamp
 timestamp=$(date "+%Y-%m-%d %H:%M:%S")
 
-# Dapatkan RAM usage
 read ram_percent ram_used ram_total ram_avail <<< "$(get_ram_usage)"
 
-# Cetak ke log file dengan format yang benar
 echo "[$timestamp] - Fragment Usage [$ram_percent%] - Fragment Count [$ram_used MB] - Details [Total: $ram_total MB, Available: $ram_avail MB]" >> "$LOG_FILE"
