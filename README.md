@@ -1,7 +1,288 @@
-# Laporan Praktikum
-## Soal_1
-## Soal_2
-## Soal_3
+# Laporan Praktikum IT28
+## Yuan Banny Albyan - 5027241027
+## Ica Zika Hamizah - 5027241058
+## Nafis Faqih Allmuzaky Maolidi - 5027241095
+
+## Soal 1
+
+## Soal 2
+
+## Soal 3
+### Langkah - Langkah
+
+1. Pertama buat sebuah script "dsotm.sh" yang didalamnya berisi lima fungsi sesuai track yaitu Speak to Me, On the Run, Time, Money, dan Brain Damage.
+```sh
+nano dsotm.sh
+```
+
+2. Membuat program utama yakni menggunakan switch case dan buat 5 fungsi sesuai track yang diminta
+```sh
+speak_to_me(){
+    # a. Speak to Me
+}
+on_the_run(){
+    # b. On the Run
+}
+time_function(){
+    # c. Time
+}
+money(){
+    # d. Money
+}
+brain_damage(){
+    # e. Brain Damage
+}
+# main program
+TRACK=$1
+TRACK=${TRACK//--play=/}
+
+case "$TRACK" in
+    "Speak to Me") speak_to_me ;;
+    "On the Run") on_the_run ;;
+    "Time") time_function ;;
+    "Money") money ;;
+    "Brain Damage") brain_damage ;;
+    *) echo "Unrecognized track! Please choose from 'Speak to Me', 'On the Run', 'Time', 'Money', 'Brain Damage'." ;;
+esac
+```
+Variabel `TRACK` diisi dengan argumen pertama `$1` yang diberikan saat menjalankan script sedangkan ekspresi `TRACK=${TRACK//--play=/}` digunakan untuk mengganti teks dalam variabel sehingga `--play=` dihapus dari nilai `TRACK`.
+
+3. Fungsi `speak_to_me` berisi fitur yang memanggil API [affirmations](ttps://github.com/annthurium/affirmations) untuk menampilkan word of affirmation setiap detik.
+```sh
+speak_to_me(){
+    clear
+    tput civis # Menyembunyikan kursor terminal
+    
+    while true; do
+        affirmation=$(  curl -s https://www.affirmations.dev | sed -E 's/\{"affirmation":"//; s/"\}//')
+        echo -e "$affirmation"
+        sleep 1
+    done
+}
+```
+- Menggunakan `curl` untuk mengambil data JSON dari API [affirmations](ttps://github.com/annthurium/affirmations)
+- Opsi `-s` (silent) digunakan agar output tidak menampilkan informasi unduhan
+- `sed` digunakan untuk membersihkan JSON dan hanya mengambil teks afirmasinya
+- `s/\{"affirmation":"//; s/"\}//` → Menghapus `{"affirmation":"` dan `"}`
+
+4. Fungsi `on_the_run` berisi sebuah progress bar yang berjalan dari 0% hingga 100% dengan interval random (setiap progress bertambah dalam interval waktu yang random dengan range 0.1 detik sampai 1 detik)
+```sh
+on_the_run(){
+    clear
+    tput civis
+    length=$(($(tput cols) - 7))
+    [ $length -lt 10 ] && length=10
+
+    for i in $(seq 1 100); do
+        
+        sleep $(awk -v min=0.1 -v max=1 'BEGIN{srand(); print min+rand()*(max-min)}')
+
+        progress=$((i * length / 100))
+        progress_bar=$(printf "%0.s#" $(seq 1 $progress))
+
+        printf "\r[%-${length}s] %3d%%" "$progress_bar" "$i"
+    done
+}
+```
+`tput cols` mengambil jumlah kolom dalam terminal (lebar terminal) sedangkan `length` adalah panjang maksimum progress bar, dikurangi 7 karakter untuk ruang label persen (100%).
+
+```sh
+[ $length -lt 10 ] && length=10
+```
+Jika panjang progress bar kurang dari 10 karakter, maka dipaksa menjadi 10 karakter agar tetap terlihat dengan baik
+
+```sh
+for i in $(seq 1 100); do
+```
+Perulangan dari 1 hingga 100 untuk membuat progress bar dari 0% hingga 100%
+
+```sh
+sleep $(awk -v min=0.1 -v max=1 'BEGIN{srand(); print min+rand()*(max-min)}')
+```
+Menggunakan awk untuk menghasilkan angka acak antara 0.1 hingga 1 detik agar bergerak dengan kecepatan yang bervariasi tidak konstan.
+
+```sh
+progress=$((i * length / 100))
+```
+Menghitung jumlah karakter # yang harus ditampilkan sesuai dengan persentase `progress`
+
+```sh
+progress_bar=$(printf "%0.s#" $(seq 1 $progress))
+```
+`seq 1 $progress` untuk membuat urutan angka dari 1 hingga $progress sedangkan `printf "%0.s#"` untuk mencetak karakter `#` sebanyak jumlah angka yang dihasilkan oleh `seq`
+
+```sh
+printf "\r[%-${length}s] %3d%%" "$progress_bar" "$i"
+```
+`\r` untuk menimpa baris yang sama
+`[%-${length}s]` untuk menampilkan progress bar dengan panjang dinamis.
+`%3d%%` untuk menampilkan angka persen yang selalu memiliki lebar 3 karakter untuk alignment
+
+
+5. Fungsi `time_function` berisi live clock yang menunjukkan tanggal, jam, menit dan detik
+```sh
+time_function(){
+    clear
+    tput civis
+    while true; do
+        echo -ne "$(date '+%Y-%m-%d %H:%M:%S')"
+        sleep 1
+    done
+}
+```
+- `$(date '+%Y-%m-%d %H:%M:%S')` menghasilkan tanggal & waktu saat ini dalam format `YYYY-MM-DD HH:MM:SS`
+- `sleep 1` memberikan delay selama 1 detik
+
+6. Fungsi `money` merupakan program mirip cmatrix dengan simbol mata uang seperti `$ € £ ¥ ¢ ₹ ₩ ₿ ₣`
+```sh
+money(){
+    clear
+    symbols=('$' '€' '£' '¥' '¢' '₹' '₩' '₿' '₣')
+    colors=(5 6 7)
+
+    cols=$(tput cols)
+    rows=$(tput lines)
+    declare -A positions
+
+    for ((i = 0; i < cols; i++)); do
+        positions[$i]=$((RANDOM % rows))
+    done
+
+    # Loop animasi
+    while true; do
+        for ((i = 0; i < cols / 2; i++)); do
+            col=$((RANDOM % cols))
+
+            symbol="${symbols[RANDOM % ${#symbols[@]}]}"
+            color="${colors[RANDOM % ${#colors[@]}]}"
+
+            tput cup "${positions[$col]}" "$col"
+            echo " "
+
+            new_pos=$((positions[$col] - 2))
+            if (( new_pos < 0 )); then new_pos=$rows; fi
+            positions[$col]=$new_pos
+
+            # Set warna
+            tput setaf $color
+            if (( RANDOM % 10 < 3 )); then
+                tput bold
+            fi
+
+            tput cup "$new_pos" "$col"
+            echo -n "$symbol"
+
+            # Reset warna
+            tput sgr0
+        done
+        sleep 0.00000001
+    done
+}
+```
+`cols=$(tput cols)` untuk mengambil jumlah kolom atau lebar terminal,  `rows=$(tput lines)` untuk mengambil jumlah baris atau tinggi terminal, dan `declare -A positions` untuk mendeklarasikan array `positions`
+
+```sh
+for ((i = 0; i < cols; i++)); do
+        positions[$i]=$((RANDOM % rows))
+    done
+```
+loop ini mengisi `positions[$i]` dengan posisi acak dalam baris terminal untuk setiap kolom
+
+```sh
+for ((i = 0; i < cols / 2; i++)); do
+            col=$((RANDOM % cols))
+```
+loop ini memilih setengah dari total kolom terminal untuk menampilkan simbol didalamnya terdapat `col` untuk menyimpan kolom acak untuk menampilkan simbol 
+
+```sh
+symbol="${symbols[RANDOM % ${#symbols[@]}]}"
+            color="${colors[RANDOM % ${#colors[@]}]}"
+```
+`symbol` untuk memilih mata uang acak dari array `symbols` dan `color` untuk memilih warna acak dari array `colors`
+
+```sh
+tput cup "${positions[$col]}" "$col"
+            echo " "
+```
+`tput cup x y` untuk memindahkan kursor ke posisi sebelumnya dan `echo " "` berguna untuk menghapus simbol sebelumnya dengan mencetak spasi
+
+```sh
+new_pos=$((positions[$col] - 2))
+            if (( new_pos < 0 )); then new_pos=$rows; fi
+            positions[$col]=$new_pos
+```
+Menghitung posisi baru dengan mengurangi 2 baris. Jika posisi baru kurang dari 0, maka diatur ulang ke baris paling bawah
+
+```sh
+tput setaf $color
+            if (( RANDOM % 10 < 3 )); then
+                tput bold
+            fi
+```
+`tput setaf $color` untuk mengatur warna teks, 30% kemungkinan `( RANDOM % 10 < 3)` akan membuat simbol ditampilkan dalam teks tebal `tput bold`
+
+```sh
+tput cup "$new_pos" "$col"
+            echo -n "$symbol"
+```
+memindahkan kursor ke posisi baru `$new_pos` dan `$col` lalu mencetak `$symbol` tanpa newline
+
+7. Fungsi `brain_damage` menampilkan proses yang sedang berjalan, seperti task manager yang dapat menampilkan data baru setiap detiknya
+```sh
+brain_damage(){
+    RESET='\033[0m'
+    BOLD='\033[1m'
+    PINK='\033[38;5;218m'
+    BLUE='\033[38;5;117m'
+    GREEN='\033[38;5;120m'
+    YELLOW='\033[38;5;221m'
+    PURPLE='\033[38;5;183m'
+    WHITE='\033[1;37m'
+    COLORS=("$PINK" "$BLUE" "$GREEN" "$YELLOW" "$PURPLE")
+    clear
+    tput civis
+    stty -echo # Matikan echo agar terminal tetap rapi
+    trap "tput cnorm; stty echo; exit" SIGINT  # Tampilkan kursor & kembalikan terminal saat keluar
+
+    while true; do
+        tput cup 0 0
+        top_output=$(top -b -n 1 | head -n 22)
+
+        IFS=$'\n' read -rd '' -a lines <<<"$top_output"
+
+        for i in "${!lines[@]}"; do
+            COLOR="${COLORS[$((i % ${#COLORS[@]}))]}"
+
+            if [ $i -lt 5 ]; then
+                echo -e "${BOLD}${COLOR}${lines[$i]}${RESET}"
+
+            elif [ $i -eq 5 ]; then
+                echo -e "${WHITE}${BOLD}${lines[$i]}${RESET}"
+
+            else
+                echo -e "${COLOR}${lines[$i]}${RESET}"
+            fi
+
+            if [[ $i -eq 4 ]]; then
+                echo ""
+            fi
+        done
+
+        sleep 1
+    done
+    tput cnorm
+    stty echo # Aktifkan kembali input terminal
+}
+```
+- `trap "tput cnorm; stty echo; exit" SIGINT` menangani CTRL+C untuk mengembalikan terminal ke keadaan semula
+- Menggunakan `top -b -n 1 | head -n 22` untuk mendapatkan snapshot pertama dari proses yang berjalan
+- Memisahkan output `top` menjadi array `lines` berdasarkan newline `(IFS=$'\n')`
+- Mengiterasi setiap baris dalam `lines` dan menerapkan warna berdasarkan indeksnya
+- Jika indeks `i < 5`, teks dicetak dengan warna tebal
+- Jika `i == 5`, teks menggunakan warna putih tebal
+- Berjalan tanpa henti, memperbarui output top setiap detik `sleep 1`
+- Setelah keluar, kursor dikembalikan `tput cnorm` dan terminal dinormalisasi `stty echo`
+
 ## Soal_4
 ### Langkah - Langkah
 - Program shell pokemon_analysis.sh dibuat untuk membantu menganalisis data penggunaan Pokémon yang terdapat pada file CSV, misalnya pokemon_usage.csv. Data tersebut memuat informasi penting seperti nama Pokémon, persentase penggunaan (Usage%), jumlah penggunaan (RawUsage), tipe, dan statistik (HP, Atk, Def, Sp.Atk, Sp.Def, Speed). Program ini ditujukan untuk memudahkan persiapan tim dalam turnamen “Generation 9 OverUsed 6v6 Singles” dengan menampilkan informasi meta secara ringkas dan terurut.
