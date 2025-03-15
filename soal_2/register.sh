@@ -28,11 +28,17 @@ validate_input() {
 
         read -p "Enter Username: " username
         read -p "Enter Email: " email
-        read -p "Enter Password: " password
+        read -s -p "Enter Password: " password
         echo ""
         echo "_____________________________________________________________________"
 
         valid=1  # Anggap valid, cek error nanti
+
+        # Cek apakah email sudah digunakan
+        if grep -q "^$email," "$DB_FILE"; then
+            echo "Error: Email already taken!"
+            valid=0
+        fi
 
         # Validasi Email: harus mengandung '@' dan '.'
         if [[ "$email" != *"@"* || "$email" != *"."* ]]; then
@@ -55,14 +61,6 @@ validate_input() {
         fi
         if ! [[ "$password" =~ [0-9] ]]; then
             echo "Error: Password must include at least one number."
-            valid=0
-        fi
-
-        # Cek apakah email sudah digunakan
-        if awk -F',' -v Email="$email" 'NR>1 { if ($2 == Email) { exit 1 } }' "$DB_FILE"; then
-            :  # Email belum didaftarkan, lanjutkan
-        else
-            echo "Error: Email already taken!"
             valid=0
         fi
 

@@ -21,7 +21,7 @@ cat<<"EOF"
 =============================================================================
 EOF
 read -p "Enter Email: " email
-read -p "Enter Password: " password
+read -s -p "Enter Password: " password
 echo
 
 if grep -q "^$email," "$DB_FILE"; then
