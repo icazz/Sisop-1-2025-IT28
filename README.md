@@ -119,6 +119,46 @@ fi
 ```
 - jika login berhasil maka lanjut output "berhasil" lalu diarahkan ke scripts/manager.sh
 
+#### Sistem harus dapat melacak penggunaan CPU (dalam persentase) Lokasi shell script: ./scripts/core_monitor.sh
+`mkdir scripts && touch scripts/core-monitor.sh' lalu memasukkan command 
+```
+cpu_model=$(grep "model name" /proc/cpuinfo | head -1 | cut -d ':' -f2 | sed 's/^ //')
+```
+berdasarkan stack overflow, kurang lebih: mengambil data dari /proc/cpuinfo (cpu info dari processor)
+hasil grep nya itu `model name  : Intel(R) Core(TM) i7-9700 CPU @ 3.00GHz`, maka ditambahkan
+head-1 untuk mengambil baris pertama nya saja `mengambil hanya baris pertama dari output grep.`
+cut -d ':' delimiter dengan tanda ':'
+-f2 ambil kolom kedua setelah delimiter `Intel(R) Core(TM) i7-9700 CPU @ 3.00GHz`
+sed 's/^ //' untuk memanipulasi teks dengan `'s/^ //'` untuk menghapus spasi di awal teks jika ada
+
+karna di sini program dapat memantau monitor secara terus menerus, maka dibuat loop
+```
+while true; do
+   # Ambil CPU usage: hitung penggunaan CPU dari nilai idle
+   cpu_usage=$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{printf "%.3f%%", 100 - $1}') 
+clear # Bersihkan layar untuk update tampilan
+```
+atau
+```
+while true; do
+   # Ambil CPU usage: hitung penggunaan CPU dari nilai idle
+   cpu_usage=$(awk '{u=$2+$4; t=$2+$4+$5; if (NR==1){u1=u; t1=t;} else print ($2+$4-u1) * 100 / (t-t1) "%"; }' \ <(grep 	'cpu ' /proc/stat) <(sleep 1;grep 'cpu ' /proc/stat)) # Bersihkan layar untuk update tampilan
+clear # Tampilkan header dan informasi
+```
+
+#### RAM menjadi representasi dari “fragments” di dunia “Arcaea”, yang dimana dipantau dalam persentase usage, dan juga penggunaan RAM sekarang. Lokasi shell script: ./scripts/frag_monitor.sh
+karna tadi belum masuk ke folder scripts, maka bisa 'cd scripts && touch frag_monitor.sh' atau touch scripts/frag_monitor.sh`
+
+1. cpu usage
+- Script membaca data dari `/proc/stat` untuk menghitung total waktu CPU yang digunakan dan waktu idle.
+- Menggunakan perbedaan (delta) antara pembacaan sebelumnya dan pembacaan saat ini untuk menghitung persentase penggunaan CPU.
+
+2. RAM usage
+- Script membaca data dari `/proc/meminfo` untuk mendapatkan total memori (`MemTotal`) dan memori yang tersedia (`MemAvailable`).
+- Jika `MemAvailable` tidak tersedia, script menggunakan fallback dengan menjumlahkan `MemFree`, `Buffers`, dan `Cached`.
+- Menghitung persentase penggunaan RAM dan mengonversi nilai penggunaan ke MB.
+
+
 
 
 
