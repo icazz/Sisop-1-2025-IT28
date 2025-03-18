@@ -4,8 +4,124 @@
 ## Nafis Faqih Allmuzaky Maolidi - 5027241095
 
 ## Soal_1
+""
 
 ## Soal_2
+#### Buatlah dua shell script, login.sh dan register.sh, yang dimana database “Player” disimpan di /data/player.csv. Untuk register, parameter yang dipakai yaitu email, username, dan password. Untuk login, parameter yang dipakai yaitu email dan password.
+`mkdir soal_2 && touch login.sh && touch register.sh` kemudian `cd soal_2 && nano register.sh`
+### Untuk register.sh
+inisiasi lokasi database `DB_FILE = "/data/player.csv`
+```
+if [ ! -f "$DB_FILE" ]; then
+    bash "sudo mkdir $DB_FILE"
+    echo "email,username,hpassword,password" > "$DB_FILE"
+fi
+```
+membuat file player.csv dan memasukkan header, bila player.csv belum ada
+`validate_input()` = fungsi untuk memvalidasi input untuk ketentuan (2.b)
+
+#### Email harus memiliki format yang benar dengan tanda @ dan titik, sementara password harus memiliki minimal 8 karakter, setidaknya satu huruf kecil, satu huruf besar, dan satu angka
+```
+local valid=0
+while [ $valid -eq 0 ]; do
+```
+boolean valid diset false, dan selama tidak valid akan meminta user untuk input dengan ketentuan yang ada.
+membaca input dari user, dan set valid sebagai 1 (positive thinking user bisa masuk).
+```
+read -p "Input Username: " username
+read -p "Input Email: " email
+read -p "Input Password: " password
+valid=1
+```
+constrain email (harus ada '@' dan '.'), dan jika email tidak sesuai, maka valid diset ke 0 lagi.
+```
+if [[ "$email" != *"@"* || "$email" != *"."* ]]; then
+    echo "Error: Email must contain '@' and '.'"
+    valid=0
+fi
+```
+dari atas ke bawah, untuk constrain passwordnya, (minimal 8 karakter, ada uppercase, ada lowercase, ada angka)
+```
+if [ ${#password} -lt 8 ]; then
+    echo "Error: Password must be at least 8 characters long."
+    valid=0
+fi
+if ! [[ "$password" =~ [A-Z] ]]; then
+    echo "Error: Password must include at least one uppercase letter."
+    valid=0
+fi
+if ! [[ "$password" =~ [a-z] ]]; then
+    echo "Error: Password must include at least one lowercase letter."
+    valid=0
+fi
+if ! [[ "$password" =~ [0-9] ]]; then
+    echo "Error: Password must include at least one number."
+    valid=0
+fi
+```
+#### login/register tidak bisa memakai email yang sama (email = unique)
+menggunakan awk untuk membaca file player.csv, dengan flag -F (untuk menandakan pemisahnya ',' ) -v (untuk meng assign variabel global $email ke variabel awk Email untuk dicek mulai dari barus ke-2 `NR>1`
+```
+if awk -F',' -v Email="$email" 'NR>1 { if ($2 == Email) { exit 1 } }' "$DB_FILE"; then
+    :  # Email belum didaftarkan, lanjutkan
+else
+    echo "Error: Email already taken!"
+    valid=0
+fi
+```
+#### Gunakan algoritma hashing sha256sum yang memakai static salt
+```
+hashed_password=$(echo -n "${password}STATIC_SALT" | sha256sum | awk '{print $1}')
+```
+kemudian masukkan ke DB_FILE `echo "$email,$username,$hashed_password,$password" >> "$DB_FILE"`
+
+### Untuk bagian login.sh
+inisiasi DB_FILE `DB_FILE="/data/player.csv"`
+input email dan password 
+```
+read -p "Input Email: " email
+read -p "Input Password: " password
+```
+echo / keluarkan output dengan percabangan:
+- jika DB_FILE belum ada, maka keluarkan DB belum dibuat! Proses masuk ke Register, lalu diarahkan ke program register.sh setelah jeda 2 detik
+- grep / mengambil elemen dari kolom pertama (karna email tempatnya di kolom pertama saat di register.sh), namun jika email bukan di kolom pertama, maka bisa diubah sintaksnya menjadi 
+```
+awk -F ',' -v e="$email" '$2 == e { found=1 } END { exit !found }' "$DB_FILE"
+```
+lalu diecho "email ditemukan"
+- jika email ditemukan selanjutnya dicek apakah sama dengan yang ada di DB_FILES dengan mencocokkannya menggunakan awk dan hashing password dengan algoritma yang sama ketika register.
+hashing:`hashed_password=$(echo -n "${password}STATIC_SALT" | sha256sum | awk '{print $1}')`
+lalu cek menggunakan `awk -F ',' -v e="$email" -v h="$hashed_password" '$1 == e && $3 == h { found=1 } END { exit !found }' "$DB_FILE`
+- jika email ada, kemudian email dan password benar maka output "login berhasil"
+- jika email ada tapi awk salah, maka output "password salah"
+- jika email tidak ditemukan output "email tidak ditemukan"
+```
+if [[ ! -f "$DB_FILE" ]]; then
+   echo "DB belum dibuat! Proses masuk ke Register"
+   sleep 2
+   bash "./register.sh"
+   exit 1
+fi
+if grep -q "^$email," "$DB_FILE"; then
+    echo "✅ Email ditemukan"
+    hashed_password=$(echo -n "${password}STATIC_SALT" | sha256sum | awk '{print $1}')
+
+    if awk -F ',' -v e="$email" -v h="$hashed_password" '$1 == e && $3 == h { found=1 } END { exit !found }' "$DB_FILE"; then
+        echo "✅ Login berhasil!"
+    else
+        echo "❌ Password salah!"
+	exit 1
+    fi
+else
+    echo "❌ Email tidak ditemukan!"
+    exit 1
+fi
+```
+- jika login berhasil maka lanjut output "berhasil" lalu diarahkan ke scripts/manager.sh
+
+
+
+
 
 ## Soal_3
 ### Langkah - Langkah
