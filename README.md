@@ -697,6 +697,18 @@ awk -F',' 'NR>1 { print }' "$FILE" | sort -t',' -fk"$column","$column"
 - `awk -F',' 'NR>1 { print }'` mencetak semua baris CSV kecuali baris pertama (header), dan hasilnya di-pipe ke perintah sort.
 - `sort -t','` berarti pemisah kolom untuk sortir adalah tanda koma `(,)`.
 - `-fk"$column","$column"` berarti sort dengan key (kunci) pada kolom `$column`, dengan `-f (fold case)` untuk mengabaikan perbedaan huruf besar/kecil.
+
+#### *Revisi*
+```
+if ["$column" == 1]; then
+    awk -F',' 'BEGIN { OFS="," } NR>1 { print }' "$FILE" | sort -t',' -k"$column","$column" -n
+fi
+if ["$column" != 1]; then
+    awk -F',' 'BEGIN { OFS="," } NR>1 { print }' "$FILE" | sort -t',' -k"$column","$column" -n -r
+fi
+```
+cara sederhana agar ketika yang disort adalah nama pokemon, maka ascendinng dari a ke z, dan yang lainnya descending, dari terbesar ke terkecil
+
   
 8. Membuat fitur Pencarian
 ```
@@ -722,6 +734,13 @@ fi
 ```
 - `grep -i "$ARGUMENT" "$FILE"` mencari argumen dari file tanpa memperhatikan kapital/ tidak (case-insensitive)
 
+#### *Revisi*
+```
+awk -F',' 'NR>1 { print }' "$FILE" | awk -F',' -v name="$ARGUMENT" 'tolower($1) ~ tolower(name)' | sort -t',' -k2 -n -r
+```
+intinya bagian ini merubah logic agar yang dicari hanya dari $1 (nama pokemon) lalu disort berdasarkan k2 (usage)
+
+
 10. Membuat fitur Filter
 ```
 -f|--filter)
@@ -743,7 +762,13 @@ fi
 - `-v type="$ARGUMENT"`: Mengirimkan nilai dari $ARGUMENT ke variabel type di dalam AWK.
 - `'$4 ~ type'`: Memeriksa setiap baris (kecuali header jika tidak diabaikan sebelumnya) dan memilih baris di mana kolom ke-4 (yang biasanya berisi tipe Pokémon) cocok dengan pola yang disimpan di variabel type. Operator ~ digunakan untuk pencocokan pattern (regex).
 - `"$FILE"`: Menunjukkan nama file CSV yang berisi data Pokémon.
-  
+
+#### *Revisi*
+```
+awk -F',' -v type="$ARGUMENT" '($4 ~ type) || ($5 ~ type)' "$FILE" | sort -t',' -k2 -n -r
+```
+menambahkan yang difilter `($4 ~ type) || ($5 ~ type)` sebelumnya hanya `($4 ~ type)`, efeknya, yang dicari itu type1 dan type2
+
 11. Error handling, apabila option tidak valid
 ```*)
         echo "Error: Invalid option."
