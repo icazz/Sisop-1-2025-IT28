@@ -1,5 +1,4 @@
 #!/bin/bash
-# Menampilkan bantuan jika opsi -h atau --help diberikan
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then
     cat <<'EOF'
                                 ,▄█▄
@@ -40,58 +39,56 @@ FILE="$1"
 OPTION="$2"
 ARGUMENT="$3"
 
-# Jika file tidak diberikan atau tidak ditemukan, tampilkan pesan error
+# Jika file tidak diberikan atau tidak ditemukan, munculin pesan error
 if [[ -z "$FILE" || ! -f "$FILE" ]]; then
     echo "Error: File not found or not specified."
     echo "Usage: ./pokemon_analysis1.sh <file_name> [options]"
     exit 1
 fi
 
-# Proses opsi yang diberikan
 case "$OPTION" in
     -i|--info)
-        echo "Summary of $FILE"	
-	awk -F ',' '
-	   NR > 1 {
-     	   	  if ($2 > maxUsage) {
-      	   	    maxUsage = $2
-       	   	    maxPokemon = $1
-     	   	  }
-    	   	  if ($3 > maxRaw) {
-       	   	    maxRaw = $3
-      	   	    maxRawPokemon = $1
-     	   	  }
-   	    	}
-   	   END {
-     		print "_____________________________________________________________"
-     		print "| Summary of " FILENAME
-     		print "| Highest Adjusted Usage: " maxPokemon, maxUsage "% uses    "
-     		print "| Highest Raw Usage:      " maxRawPokemon, maxRaw, "uses    "
-     		print "_____________________________________________________________"
-   	       }' "$FILE"
-
-        ;;
-    -s|--sort)
-    	if [[ -z "$ARGUMENT" ]]; then
-           echo "Error: Sorting column not specified."
-           exit 1
-    	fi
-	echo "DEBUG: FILE = $FILE"
-	echo "DEBUG: ARGUMENT = $ARGUMENT"
-    	column=$(head -1 "$FILE" | awk -v arg="$ARGUMENT" -F',' '{for(i=1; i<=NF; i++) if ($i == arg) print i}')
-	echo "DEBUG: column = $column"
-	if [ -z "$column" ]; then
-       	   echo "Error: Invalid sorting column"
-       	   exit 1
-    	fi
-
-    	echo "_____________________________________________________________"
-    	echo "| Sorting by column: $ARGUMENT"
-    	echo "-------------------------------------------------------------"
-    	awk -F',' 'NR>1 { print }' "$FILE" \
-      | sort -t',' -fk"$column","$column"
-	echo "_____________________________________________________________"
+    echo "Summary of $FILE"
+    
+    maxUsageLine=$(awk -F',' 'NR>1 { print }' "$FILE" | sort -t',' -k2 -n -r | head -n 1)
+    maxPokemon=$(echo "$maxUsageLine" | cut -d',' -f1)
+    maxUsage=$(echo "$maxUsageLine" | cut -d',' -f2)
+    
+    maxRawLine=$(awk -F',' 'NR>1 { print }' "$FILE" | sort -t',' -k3 -n -r | head -n 1)
+    maxRawPokemon=$(echo "$maxRawLine" | cut -d',' -f1)
+    maxRaw=$(echo "$maxRawLine" | cut -d',' -f3)
+    
+    echo "_____________________________________________________________"
+    echo "| Summary of $FILE"
+    echo "| Highest Adjusted Usage: $maxPokemon with $maxUsage% uses"
+    echo "| Highest Raw Usage:      $maxRawPokemon with $maxRaw uses"
+    echo "_____________________________________________________________"
     ;;
+
+    -s|--sort)
+    if [[ -z "$ARGUMENT" ]]; then
+        echo "Error: Sorting column not specified."
+        exit 1
+    fi
+
+    column=$(head -1 "$FILE" | awk -F',' -v arg="$ARGUMENT" '{for(i=1;i<=NF;i++){ if(tolower($i)==tolower(arg)) print i}}')
+    if [ -z "$column" ]; then
+        echo "Error: Invalid sorting column"
+        exit 1
+    fi
+
+    echo "_____________________________________________________________"
+    echo "| Sorting by column: $ARGUMENT"
+    echo "-------------------------------------------------------------"
+    if ["$column" == 1]; then
+		awk -F',' 'BEGIN { OFS="," } NR>1 { print }' "$FILE" | sort -t',' -k"$column","$column" -n
+	fi
+	if ["$column" != 1]; then
+		awk -F',' 'BEGIN { OFS="," } NR>1 { print }' "$FILE" | sort -t',' -k"$column","$column" -n -r
+	fi  
+    echo "_____________________________________________________________"
+    ;;
+
 
     -g|--grep)
     	if [[ -z "$ARGUMENT" ]]; then
@@ -102,7 +99,7 @@ case "$OPTION" in
     	echo "_____________________________________________________________"
     	echo "| Searching for Pokemon with name: $ARGUMENT"
     	echo "-------------------------------------------------------------"
-    	grep -i "$ARGUMENT" "$FILE"
+		awk -F',' 'NR>1 { print }' "$FILE" | awk -F',' -v name="$ARGUMENT" 'tolower($1) ~ tolower(name)' | sort -t',' -k2 -n -r
     	echo "_____________________________________________________________"
     	;;
 
@@ -115,7 +112,7 @@ case "$OPTION" in
     	echo "_____________________________________________________________"
     	echo "| Filtering Pokemon by type: $ARGUMENT"
     	echo "-------------------------------------------------------------"
-    	awk -F',' -v type="$ARGUMENT" '$4 ~ type' "$FILE"
+    	awk -F',' -v type="$ARGUMENT" '($4 ~ type) || ($5 ~ type)' "$FILE" | sort -t',' -k2 -n -r
     	echo "_____________________________________________________________"
     	;;
 
