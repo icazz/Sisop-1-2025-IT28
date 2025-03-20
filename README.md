@@ -22,10 +22,10 @@
 `#!/bin/bash
 
 # Nama file dataset
+```sh
 DATA_FILE="reading_data.csv"
 
 # Periksa apakah file ada
-```sh
 if [[ ! -f "$DATA_FILE" ]]; then
     echo "File $DATA_FILE tidak ditemukan. Pastikan file ada di direktori yang sama."
     exit 1
