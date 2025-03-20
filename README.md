@@ -18,7 +18,7 @@
 ### Setelah membuat Struktur Repository, Buka file poppo_siroyo.sh dengan editor nano
 `nano poppo_siroyo.sh`
 
-### emudian, tambahkan kode berikut
+### Kemudian, tambahkan kode berikut
 `#!/bin/bash
 
 # Nama file dataset
