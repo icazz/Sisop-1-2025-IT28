@@ -19,10 +19,10 @@
 `nano poppo_siroyo.sh`
 
 ### Kemudian, tambahkan kode berikut
-`#!/bin/bash
+```sh
+#!/bin/bash
 
 # Nama file dataset
-```sh
 DATA_FILE="reading_data.csv"
 
 # Periksa apakah file ada
