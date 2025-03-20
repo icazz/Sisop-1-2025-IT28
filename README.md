@@ -4,10 +4,10 @@
 ## Nafis Faqih Allmuzaky Maolidi - 5027241095
 
 ## Soal_1
-### Buat Folder Repository, Jalankan perintah berikut untuk membuat folder bernama soal_1
+### Buat Folder Repository, untuk membuat folder bernama soal_1 gunakan kode tersebut
 `mkdir soal_1`
 
-### Masuk ke Folder soal_1 
+### untuk Masuk ke Folder soal_1 
 `cd soal_1`
 
 ### Buat File poppo_siroyo.sh, Gunakan perintah berikut untuk membuat file shell script
