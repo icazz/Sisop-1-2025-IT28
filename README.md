@@ -5,18 +5,28 @@
 
 ## Soal_1
 ### Buat Folder Repository, untuk membuat folder bernama soal_1 gunakan kode tersebut
-`mkdir soal_1`
+```sh
+mkdir soal_1
+```
 
 ### untuk Masuk ke Folder soal_1 
-`cd soal_1`
+```sh
+cd soal_1
+```
 
 ### Buat File poppo_siroyo.sh, Gunakan perintah berikut untuk membuat file shell script
-`touch poppo_siroyo.sh`
+```sh
+touch poppo_siroyo.sh
+```
 ### Beri Izin Eksekusi ke Script
-`chmod +x poppo_siroyo.sh`
+```sh
+chmod +x poppo_siroyo.sh
+```
 
 ### Setelah membuat Struktur Repository, Buka file poppo_siroyo.sh dengan editor nano
-`nano poppo_siroyo.sh`
+```sh
+nano poppo_siroyo.sh
+```
 
 ### Kemudian, tambahkan kode berikut
 ```sh
