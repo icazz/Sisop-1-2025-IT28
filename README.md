@@ -25,6 +25,7 @@
 DATA_FILE="reading_data.csv"
 
 # Periksa apakah file ada
+```sh
 if [[ ! -f "$DATA_FILE" ]]; then
     echo "File $DATA_FILE tidak ditemukan. Pastikan file ada di direktori yang sama."
     exit 1
@@ -75,6 +76,8 @@ elif [[ "$pilihan" -eq 4 ]]; then
     
     echo "Genre paling populer di Asia setelah 2023 adalah $genre dengan $jumlah buku."
 fi`
+```
+
 ### Setelah menambahkan kode, cek apakah file reading_data.csv ada.
 `reading_data.csv`
 
