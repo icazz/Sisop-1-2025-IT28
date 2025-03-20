@@ -13,7 +13,10 @@ mkdir soal_1
 ```sh
 cd soal_1
 ```
-
+### Mengunduh file dari google drive
+```sh
+wget https://drive.usercontent.google.com/u/0/uc\?id\=1l8fsj5LZLwXBlHaqhfJVjz_T0p7EJjqV\&export\=download -O reading_data.csv
+```
 ### Buat File poppo_siroyo.sh, Gunakan perintah berikut untuk membuat file shell script
 ```sh
 touch poppo_siroyo.sh
