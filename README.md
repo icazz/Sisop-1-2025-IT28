@@ -97,8 +97,8 @@ fi`
 ### Jalankan perintah berikut di terminal, Kemudian pilih nomor sesuai pertanyaan yang ingin dijawab.
 `./poppo_siroyo.sh`
 
-
-""
+### Output
+![Output soal_1](images/soal_1.png)
 
 ## Soal_2
 #### Buatlah dua shell script, login.sh dan register.sh, yang dimana database “Player” disimpan di /data/player.csv. Untuk register, parameter yang dipakai yaitu email, username, dan password. Untuk login, parameter yang dipakai yaitu email dan password.
@@ -262,6 +262,72 @@ Untuk menghitung persentase penggunaannya dengan cara usage/total * 100
 #### Pemantauan yang teratur dan terjadwal sangat penting untuk mendeteksi anomali. Crontab manager (suatu menu) memungkinkan "Player" untuk mengatur jadwal pemantauan sistem. Lokasi shell script: ./scripts/manager.sh
 Untuk bisa mengakses core_monitor.sh dan frag_monitor.sh, dibuatlah script manager.sh yang berisi crontab memanggil core_monitor.sh untuk `add CPU` dan memnggil frag_monitor.sh untuk memanggil `add RAM`. Dalam manager.sh ada beberapa menu seperti pada gambar:
 ![Terminal Manager](img/manager.png)
+
+1. Menu 1 dan 2 adalah membuat crontab
+```sh
+CORE_SCRIPT="$(realpath "$(dirname "$0")/core_monitor.sh")"
+FRAG_SCRIPT="$(realpath "$(dirname "$0")/frag_monitor.sh")"
+function add_cron() {
+    local script=$1
+    local task_name=$2
+
+    if crontab -l 2>/dev/null | grep -q "$script"; then
+        echo "❌ $task_name is already in crontab!"
+        return
+    fi
+
+    (crontab -l 2>/dev/null | grep -v "bin/bash .*$(realpath "$script")"; echo "* * * * * /bin/bash $(realpath "$script")") | crontab -
+    echo "✅ $task_name successfully added to crontab every 1 minute!"
+}
+```
+Dalam function ini pertama akan cek apakah ada crontab yang sudah dijalankan sebelumnya, jika ada maka tidak perlu membuat lagi. Jika crontab belum ada maka crontab dibuat dengan penjadwalan setiap satu menit, maka crontab fieldsnya `* * * * *` yang artinya setiap satu menit. Sesuai dengan pilihan jika memilih 1 maka add CPU yang berarti akan memanggil `CORE_SCRIPT` dan memilih 2 maka add RAM yang berarti akan memanggil `FRAG_SCRIPT`
+
+2. Menu 2 dan 3 adalah menghapus crontab yang sedang berjalan
+```sh
+function remove_task() {
+    local script=$1
+    local task_name=$2
+
+    if crontab -l 2>/dev/null | grep -q "$script"; then
+        crontab -l 2>/dev/null | grep -v "bin/bash .*$(realpath "$script")" | crontab -
+        echo "🗑️ $task_name successfully removed from crontab!"
+    else
+        echo "❌ $task_name not found in crontab!"
+    fi
+
+    local pids=$(pgrep -f "$script")
+    if [[ -n "$pids" ]]; then
+        echo "🛑 Stopping $task_name..."
+        kill -9 $pids
+        echo "✅ $task_name successfully stopped!"
+    fi
+}
+```
+Dalam function ini pertama akan cek crontab yang dipilih (add CPU/add RAM) apakah masih berjalan atau sudah berhenti, jika masih berjalan crontab akan dihapus terlebih dahulu dari data, lalu menggunakan `kill -9 $pids` untuk menghentikan prosesnya.
+
+3. Menu 5 adalah list crontab job yang masih berjalan
+```sh
+function list_cron() {
+    local cron_jobs=$(crontab -l 2>/dev/null)
+    if [[ -z "$cron_jobs" ]]; then
+        echo "📜 No scheduled tasks in crontab!"
+    else
+        echo "📜 Active crontab tasks:"
+        echo "$cron_jobs"
+    fi
+}
+```
+Dalam function ini hanya mencari crontab yang sedang berjalan, jika ditemukan maka crontab ditampilkan. `cron_jobs` adalah variabel untuk menyimpan list crontab.
+
+4. Menu 6 adalah menu keluar, user akan keluar dan kembali ke menu `arcaea terminal`
+![Terminal Arcaea](img/terminal.png)
+
+#### Karena tentunya script yang dimasukkan ke crontab tidak mengeluarkan output di terminal, buatlah 2 log file, core.log dan fragment.log di folder ./log/, yang dimana masing-masing terhubung ke program usage monitoring untuk usage tersebut. 
+Setelah crontab dibuat, directory bernama `logs` otomatis dibuat dan berisikan `core.log` dan `fragment.log`
+![core dan fragment](img/logFile.png)
+
+#### Tree hasil akhir soal_2 dijalankan
+![Tree soal_2](img/tree.png)
 
 ## Soal_3
 ### Langkah - Langkah
