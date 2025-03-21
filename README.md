@@ -244,18 +244,20 @@ clear # Tampilkan header dan informasi
 karna tadi belum masuk ke folder scripts, maka bisa 'cd scripts && touch frag_monitor.sh' atau touch scripts/frag_monitor.sh`
 
 1. cpu usage
-- Script membaca data dari `/proc/stat` untuk menghitung total waktu CPU yang digunakan dan waktu idle.
-- Menggunakan perbedaan (delta) antara pembacaan sebelumnya dan pembacaan saat ini untuk menghitung persentase penggunaan CPU.
+menggunakan command yang sama seperti core_monitor
 
-2. RAM usage
-- Script membaca data dari `/proc/meminfo` untuk mendapatkan total memori (`MemTotal`) dan memori yang tersedia (`MemAvailable`).
-- Jika `MemAvailable` tidak tersedia, script menggunakan fallback dengan menjumlahkan `MemFree`, `Buffers`, dan `Cached`.
-- Menghitung persentase penggunaan RAM dan mengonversi nilai penggunaan ke MB.
-
-
-
-
-
+3. RAM usage
+- menggunakan command yang sama seperti core_monitor, tapi di sini yang diambil adalah memori total dan memori yang digunakan
+```
+total_mem=$(free -m | awk '/Mem:/ {print $2}')
+  used_mem=$(free -m | awk '/Mem:/ {print $3}')
+```
+free ini mengeluarkan keterangan memori dan swap, memori di sini harusnya adalah log untuk ram, kemudian flag -m digunakan untuk outputnya berupa MB, selanjutnya dipipe ke awk untuk mengeluarkan kolom ke 2 (total memori yang ada) dan kolom ke 3 (memori yang digunakan)
+- menggunakan
+```
+ram_usage_percent=$(awk -v used="$used_mem" -v total="$total_mem" 'BEGIN {printf "%.2f", (used/total)*100}')
+```
+Untuk menghitung persentase penggunaannya dengan cara usage/total * 100
 
 ## Soal_3
 ### Langkah - Langkah
@@ -700,10 +702,9 @@ awk -F',' 'NR>1 { print }' "$FILE" | sort -t',' -fk"$column","$column"
 
 #### *Revisi*
 ```
-if ["$column" == 1]; then
+if [[ "$column" -eq 1 ]]; then
     awk -F',' 'BEGIN { OFS="," } NR>1 { print }' "$FILE" | sort -t',' -k"$column","$column" -n
-fi
-if ["$column" != 1]; then
+else
     awk -F',' 'BEGIN { OFS="," } NR>1 { print }' "$FILE" | sort -t',' -k"$column","$column" -n -r
 fi
 ```
