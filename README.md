@@ -105,7 +105,7 @@ fi`
 `mkdir soal_2 && touch login.sh && touch register.sh` kemudian `cd soal_2 && nano register.sh`
 ### Untuk register.sh
 inisiasi lokasi database `DB_FILE = "/data/player.csv`
-```
+```sh
 if [ ! -f "$DB_FILE" ]; then
     bash "sudo mkdir $DB_FILE"
     echo "email,username,hpassword,password" > "$DB_FILE"
@@ -115,27 +115,27 @@ membuat file player.csv dan memasukkan header, bila player.csv belum ada
 `validate_input()` = fungsi untuk memvalidasi input untuk ketentuan (2.b)
 
 #### Email harus memiliki format yang benar dengan tanda @ dan titik, sementara password harus memiliki minimal 8 karakter, setidaknya satu huruf kecil, satu huruf besar, dan satu angka
-```
+```sh
 local valid=0
 while [ $valid -eq 0 ]; do
 ```
 boolean valid diset false, dan selama tidak valid akan meminta user untuk input dengan ketentuan yang ada.
 membaca input dari user, dan set valid sebagai 1 (positive thinking user bisa masuk).
-```
+```sh
 read -p "Input Username: " username
 read -p "Input Email: " email
 read -p "Input Password: " password
 valid=1
 ```
 constrain email (harus ada '@' dan '.'), dan jika email tidak sesuai, maka valid diset ke 0 lagi.
-```
+```sh
 if [[ "$email" != *"@"* || "$email" != *"."* ]]; then
     echo "Error: Email must contain '@' and '.'"
     valid=0
 fi
 ```
 dari atas ke bawah, untuk constrain passwordnya, (minimal 8 karakter, ada uppercase, ada lowercase, ada angka)
-```
+```sh
 if [ ${#password} -lt 8 ]; then
     echo "Error: Password must be at least 8 characters long."
     valid=0
@@ -155,7 +155,7 @@ fi
 ```
 #### login/register tidak bisa memakai email yang sama (email = unique)
 menggunakan awk untuk membaca file player.csv, dengan flag -F (untuk menandakan pemisahnya ',' ) -v (untuk meng assign variabel global $email ke variabel awk Email untuk dicek mulai dari barus ke-2 `NR>1`
-```
+```sh
 if awk -F',' -v Email="$email" 'NR>1 { if ($2 == Email) { exit 1 } }' "$DB_FILE"; then
     :  # Email belum didaftarkan, lanjutkan
 else
@@ -164,7 +164,7 @@ else
 fi
 ```
 #### Gunakan algoritma hashing sha256sum yang memakai static salt
-```
+```sh
 hashed_password=$(echo -n "${password}STATIC_SALT" | sha256sum | awk '{print $1}')
 ```
 kemudian masukkan ke DB_FILE `echo "$email,$username,$hashed_password,$password" >> "$DB_FILE"`
@@ -172,14 +172,14 @@ kemudian masukkan ke DB_FILE `echo "$email,$username,$hashed_password,$password"
 ### Untuk bagian login.sh
 inisiasi DB_FILE `DB_FILE="/data/player.csv"`
 input email dan password 
-```
+```sh
 read -p "Input Email: " email
 read -p "Input Password: " password
 ```
 echo / keluarkan output dengan percabangan:
 - jika DB_FILE belum ada, maka keluarkan DB belum dibuat! Proses masuk ke Register, lalu diarahkan ke program register.sh setelah jeda 2 detik
 - grep / mengambil elemen dari kolom pertama (karna email tempatnya di kolom pertama saat di register.sh), namun jika email bukan di kolom pertama, maka bisa diubah sintaksnya menjadi 
-```
+```sh
 awk -F ',' -v e="$email" '$2 == e { found=1 } END { exit !found }' "$DB_FILE"
 ```
 lalu diecho "email ditemukan"
@@ -189,7 +189,7 @@ lalu cek menggunakan `awk -F ',' -v e="$email" -v h="$hashed_password" '$1 == e 
 - jika email ada, kemudian email dan password benar maka output "login berhasil"
 - jika email ada tapi awk salah, maka output "password salah"
 - jika email tidak ditemukan output "email tidak ditemukan"
-```
+```sh
 if [[ ! -f "$DB_FILE" ]]; then
    echo "DB belum dibuat! Proses masuk ke Register"
    sleep 2
@@ -215,7 +215,7 @@ fi
 
 #### Sistem harus dapat melacak penggunaan CPU (dalam persentase) Lokasi shell script: ./scripts/core_monitor.sh
 `mkdir scripts && touch scripts/core-monitor.sh' lalu memasukkan command 
-```
+```sh
 cpu_model=$(grep "model name" /proc/cpuinfo | head -1 | cut -d ':' -f2 | sed 's/^ //')
 ```
 berdasarkan stack overflow, kurang lebih: mengambil data dari /proc/cpuinfo (cpu info dari processor)
@@ -226,14 +226,14 @@ cut -d ':' delimiter dengan tanda ':'
 sed 's/^ //' untuk memanipulasi teks dengan `'s/^ //'` untuk menghapus spasi di awal teks jika ada
 
 karna di sini program dapat memantau monitor secara terus menerus, maka dibuat loop
-```
+```sh
 while true; do
    # Ambil CPU usage: hitung penggunaan CPU dari nilai idle
    cpu_usage=$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{printf "%.3f%%", 100 - $1}') 
 clear # Bersihkan layar untuk update tampilan
 ```
 atau
-```
+```sh
 while true; do
    # Ambil CPU usage: hitung penggunaan CPU dari nilai idle
    cpu_usage=$(awk '{u=$2+$4; t=$2+$4+$5; if (NR==1){u1=u; t1=t;} else print ($2+$4-u1) * 100 / (t-t1) "%"; }' \ <(grep 	'cpu ' /proc/stat) <(sleep 1;grep 'cpu ' /proc/stat)) # Bersihkan layar untuk update tampilan
@@ -248,13 +248,13 @@ menggunakan command yang sama seperti core_monitor
 
 3. RAM usage
 - menggunakan command yang sama seperti core_monitor, tapi di sini yang diambil adalah memori total dan memori yang digunakan
-```
+```sh
 total_mem=$(free -m | awk '/Mem:/ {print $2}')
   used_mem=$(free -m | awk '/Mem:/ {print $3}')
 ```
 free ini mengeluarkan keterangan memori dan swap, memori di sini harusnya adalah log untuk ram, kemudian flag -m digunakan untuk outputnya berupa MB, selanjutnya dipipe ke awk untuk mengeluarkan kolom ke 2 (total memori yang ada) dan kolom ke 3 (memori yang digunakan)
 - menggunakan
-```
+```sh
 ram_usage_percent=$(awk -v used="$used_mem" -v total="$total_mem" 'BEGIN {printf "%.2f", (used/total)*100}')
 ```
 Untuk menghitung persentase penggunaannya dengan cara usage/total * 100
@@ -539,7 +539,7 @@ brain_damage(){
 ### Langkah - Langkah
 - Program shell pokemon_analysis.sh dibuat untuk membantu menganalisis data penggunaan Pokémon yang terdapat pada file CSV, misalnya pokemon_usage.csv. Data tersebut memuat informasi penting seperti nama Pokémon, persentase penggunaan (Usage%), jumlah penggunaan (RawUsage), tipe, dan statistik (HP, Atk, Def, Sp.Atk, Sp.Def, Speed). Program ini ditujukan untuk memudahkan persiapan tim dalam turnamen “Generation 9 OverUsed 6v6 Singles” dengan menampilkan informasi meta secara ringkas dan terurut.
 1. Mempersiapkan workspace
-```
+```sh
 mkdir soal_4 && cd soal_4 && wget https://drive.usercontent.google.com/u/0/uc?id=1n-2n_ZOTMleqa8qZ2nB8ALAbGFyN4-LJ&export=download -O pokemon_analysis.csv
 nano pokemon_analysis.sh
 ```
@@ -551,12 +551,12 @@ nano pokemon_analysis.sh
 5. Help Page, Tampilan yang berisi penjelasan fitur dari program shell ini
 
 #### command untuk menjalankan program: 
-```
+```sh
 ./pokemon_analysis.sh [nama file csv] [option] [argumen]
 ```
 
 2. Membuat fitur help page
-```
+```sh
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then
     cat <<'EOF'
                                 ,▄█▄
@@ -602,7 +602,7 @@ ARGUMENT="$3"
 - `FILE="$1" OPTION="$2" ARGUMENT="$3"` bagian ini menginisiasi urutan input dari command seperti
 `./pokemon_analysis.sh [nama file csv] [option] [argumen]`
 
-```
+```sh
 if [[ -z "$FILE" || ! -f "$FILE" ]]; then
     echo "Error: File not found or not specified."
     echo "Usage: ./pokemon_analysis1.sh <file_name> [options]"
@@ -612,7 +612,7 @@ fi
 - error handling agar mengakhiri sesi dan mengeluarkan pesan apabila file tidak ditemukan
 
 3. Membuat fitur summary
-```
+```sh
 case "$OPTION" in
     -i|--info)
         echo "Summary of $FILE"	
@@ -641,7 +641,7 @@ case "$OPTION" in
 - `awk -F ',' '` mendefinisikan pemisah kolomnya adalah (,)
 - `NR > 1` Mulai dari baris ke 2 (>1) lakukan pencarian `Usage%` dan `RawUsage` terbesar
 - mengeluarkan kesimpulan dari pencarian `Usage%` dan `RawUsage` data terbesarnya
-```
+```sh
 {
   print "_____________________________________________________________"
   print "| Summary of " FILENAME
@@ -652,7 +652,7 @@ case "$OPTION" in
 ```
    
 6. Membuat fitur Sorting
-```
+```sh
 -s|--sort)
     	if [[ -z "$ARGUMENT" ]]; then
            echo "Error: Sorting column not specified."
@@ -673,7 +673,7 @@ case "$OPTION" in
     ;;
 ```
 - Menggunakan error handling, apabila Argumen nya tidak ada
-```
+```sh
 if [[ -z "$ARGUMENT" ]]; then
      echo "Error: Sorting column not specified."
      exit 1
@@ -687,13 +687,13 @@ fi
 + Jika kolom cocok, awk mencetak nomor kolomnya (print i) dan memasukkannya ke column.
 
 - Error handling apabila column tidak ada di header file csv
-```
+```sh
 if [ -z "$column" ]; then
     echo "Error: Invalid sorting column"
     exit 1
 fi
 ```
-```
+```sh
 awk -F',' 'NR>1 { print }' "$FILE" | sort -t',' -fk"$column","$column"
 ```
 - `awk -F',' 'NR>1 { print }'` mencetak semua baris CSV kecuali baris pertama (header), dan hasilnya di-pipe ke perintah sort.
@@ -701,7 +701,7 @@ awk -F',' 'NR>1 { print }' "$FILE" | sort -t',' -fk"$column","$column"
 - `-fk"$column","$column"` berarti sort dengan key (kunci) pada kolom `$column`, dengan `-f (fold case)` untuk mengabaikan perbedaan huruf besar/kecil.
 
 #### *Revisi*
-```
+```sh
 if [[ "$column" -eq 1 ]]; then
     awk -F',' 'BEGIN { OFS="," } NR>1 { print }' "$FILE" | sort -t',' -k"$column","$column" -n
 else
@@ -712,7 +712,7 @@ cara sederhana agar ketika yang disort adalah nama pokemon, maka ascendinng dari
 
   
 8. Membuat fitur Pencarian
-```
+```sh
 -g|--grep)
     	if [[ -z "$ARGUMENT" ]]; then
            echo "Error: Pokemon name not specified."
@@ -727,7 +727,7 @@ cara sederhana agar ketika yang disort adalah nama pokemon, maka ascendinng dari
     	;;
 ```
 - Error handling jika tidak ada argumen dalam command bash nya
-```
+```sh
 if [[ -z "$ARGUMENT" ]]; then
      echo "Error: Pokemon name not specified."
      exit 1
@@ -736,14 +736,14 @@ fi
 - `grep -i "$ARGUMENT" "$FILE"` mencari argumen dari file tanpa memperhatikan kapital/ tidak (case-insensitive)
 
 #### *Revisi*
-```
+```sh
 awk -F',' 'NR>1 { print }' "$FILE" | awk -F',' -v name="$ARGUMENT" 'tolower($1) ~ tolower(name)' | sort -t',' -k2 -n -r
 ```
 intinya bagian ini merubah logic agar yang dicari hanya dari $1 (nama pokemon) lalu disort berdasarkan k2 (usage)
 
 
 10. Membuat fitur Filter
-```
+```sh
 -f|--filter)
     	if [[ -z "$ARGUMENT" ]]; then
            echo "Error: Pokemon type not specified."
@@ -765,13 +765,14 @@ intinya bagian ini merubah logic agar yang dicari hanya dari $1 (nama pokemon) l
 - `"$FILE"`: Menunjukkan nama file CSV yang berisi data Pokémon.
 
 #### *Revisi*
-```
+```sh
 awk -F',' -v type="$ARGUMENT" '($4 ~ type) || ($5 ~ type)' "$FILE" | sort -t',' -k2 -n -r
 ```
 menambahkan yang difilter `($4 ~ type) || ($5 ~ type)` sebelumnya hanya `($4 ~ type)`, efeknya, yang dicari itu type1 dan type2
 
 11. Error handling, apabila option tidak valid
-```*)
+```sh
+*)
         echo "Error: Invalid option."
         echo "Usage: ./pokemon_analysis1.sh <file_name> [options]"
         exit 1
