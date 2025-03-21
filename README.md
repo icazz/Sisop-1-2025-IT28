@@ -323,7 +323,7 @@ Dalam function ini hanya mencari crontab yang sedang berjalan, jika ditemukan ma
 ![Terminal Arcaea](img/terminal.png)
 
 #### Karena tentunya script yang dimasukkan ke crontab tidak mengeluarkan output di terminal, buatlah 2 log file, core.log dan fragment.log di folder ./log/, yang dimana masing-masing terhubung ke program usage monitoring untuk usage tersebut. 
-Setelah crontab dibuat, directory bernama `logs` otomatis dibuat dan berisikan `core.log` dan `fragment.log`
+Setelah crontab dibuat, directory bernama `logs` otomatis dibuat yang berisikan `core.log` dan `fragment.log`
 ![core dan fragment](img/logFile.png)
 
 #### Tree hasil akhir soal_2 dijalankan
@@ -387,6 +387,10 @@ speak_to_me(){
 - `sed` digunakan untuk membersihkan JSON dan hanya mengambil teks afirmasinya
 - `s/\{"affirmation":"//; s/"\}//` → Menghapus `{"affirmation":"` dan `"}`
 
+#### Output Speak to Me
+
+![Speak to Me](img/speaktome.png)
+
 4. Fungsi `on_the_run` berisi sebuah progress bar yang berjalan dari 0% hingga 100% dengan interval random (setiap progress bertambah dalam interval waktu yang random dengan range 0.1 detik sampai 1 detik)
 ```sh
 on_the_run(){
@@ -440,6 +444,9 @@ printf "\r[%-${length}s] %3d%%" "$progress_bar" "$i"
 `[%-${length}s]` untuk menampilkan progress bar dengan panjang dinamis.
 `%3d%%` untuk menampilkan angka persen yang selalu memiliki lebar 3 karakter untuk alignment
 
+#### Output On the Run
+
+![On the Run](img/ontherun.png)
 
 5. Fungsi `time_function` berisi live clock yang menunjukkan tanggal, jam, menit dan detik
 ```sh
@@ -454,6 +461,10 @@ time_function(){
 ```
 - `$(date '+%Y-%m-%d %H:%M:%S')` menghasilkan tanggal & waktu saat ini dalam format `YYYY-MM-DD HH:MM:SS`
 - `sleep 1` memberikan delay selama 1 detik
+
+#### Output Time
+
+![Time](img/time.png)
 
 6. Fungsi `money` merupakan program mirip cmatrix dengan simbol mata uang seperti `$ € £ ¥ ¢ ₹ ₩ ₿ ₣`
 ```sh
@@ -549,6 +560,10 @@ tput cup "$new_pos" "$col"
 ```
 memindahkan kursor ke posisi baru `$new_pos` dan `$col` lalu mencetak `$symbol` tanpa newline
 
+#### Output Money
+
+![Money](img/money.png)
+
 7. Fungsi `brain_damage` menampilkan proses yang sedang berjalan, seperti task manager yang dapat menampilkan data baru setiap detiknya
 ```sh
 brain_damage(){
@@ -604,6 +619,10 @@ brain_damage(){
 - Jika `i == 5`, teks menggunakan warna putih tebal
 - Berjalan tanpa henti, memperbarui output top setiap detik `sleep 1`
 - Setelah keluar, kursor dikembalikan `tput cnorm` dan terminal dinormalisasi `stty echo`
+
+#### Brain Damage
+
+![Brain Damage](img/braindamage.png)
 
 ## Soal_4
 ### Langkah - Langkah
