@@ -259,6 +259,10 @@ ram_usage_percent=$(awk -v used="$used_mem" -v total="$total_mem" 'BEGIN {printf
 ```
 Untuk menghitung persentase penggunaannya dengan cara usage/total * 100
 
+#### Pemantauan yang teratur dan terjadwal sangat penting untuk mendeteksi anomali. Crontab manager (suatu menu) memungkinkan "Player" untuk mengatur jadwal pemantauan sistem. Lokasi shell script: ./scripts/manager.sh
+Untuk bisa mengakses core_monitor.sh dan frag_monitor.sh, dibuatlah script manager.sh yang berisi crontab memanggil core_monitor.sh untuk `add CPU` dan memnggil frag_monitor.sh untuk memanggil `add RAM`. Dalam manager.sh ada beberapa menu seperti pada gambar:
+![Terminal Manager](img/manager.png)
+
 ## Soal_3
 ### Langkah - Langkah
 
