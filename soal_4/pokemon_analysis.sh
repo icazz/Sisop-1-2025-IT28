@@ -80,12 +80,11 @@ case "$OPTION" in
     echo "_____________________________________________________________"
     echo "| Sorting by column: $ARGUMENT"
     echo "-------------------------------------------------------------"
-    if ["$column" == 1]; then
-		awk -F',' 'BEGIN { OFS="," } NR>1 { print }' "$FILE" | sort -t',' -k"$column","$column" -n
-	fi
-	if ["$column" != 1]; then
-		awk -F',' 'BEGIN { OFS="," } NR>1 { print }' "$FILE" | sort -t',' -k"$column","$column" -n -r
-	fi  
+    if [[ "$column" -eq 1 ]]; then
+        awk -F',' 'BEGIN { OFS="," } NR>1 { print }' "$FILE" | sort -t',' -k"$column","$column" -n
+    else
+        awk -F',' 'BEGIN { OFS="," } NR>1 { print }' "$FILE" | sort -t',' -k"$column","$column" -n -r
+    fi
     echo "_____________________________________________________________"
     ;;
 
