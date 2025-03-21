@@ -98,7 +98,7 @@ fi`
 `./poppo_siroyo.sh`
 
 ### Output
-![Output soal_1](images/soal_1.png)
+![Output](images/output.png)
 
 ## Soal_2
 #### Buatlah dua shell script, login.sh dan register.sh, yang dimana database “Player” disimpan di /data/player.csv. Untuk register, parameter yang dipakai yaitu email, username, dan password. Untuk login, parameter yang dipakai yaitu email dan password.
